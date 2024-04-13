@@ -47,7 +47,7 @@ function Login({ history }: LoginProps) {
 		() => {
 			const token = localStorage.getItem('chat-app-auth');
 			if (token && userDetails.username) {
-				chatHttp.changeLoginStatus({ newValue: true });
+				// chatHttp.changeLoginStatus({ newValue: true });
 				history.push('/room');
 			}
 		},

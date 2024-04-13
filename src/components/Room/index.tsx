@@ -43,7 +43,7 @@ const Room = ({ history }: RoomProps) => {
 	useEffect(
 		() => {
 			console.log('Initializing Socket Context..');
-			chatSocket.init();
+			// chatSocket.init();
 			chatHttp
 				.getRooms()
 				.then(({ data }) => {
@@ -69,67 +69,67 @@ const Room = ({ history }: RoomProps) => {
 		[ history, chatSocket, userDetails.username, setUserDetails, updateUnread ]
 	);
 
-	useEffect(
-		() => {
-			if (chatSocket === null) return;
-			const joinSubscription = chatSocket.onJoin().subscribe(({ userDetails, joinedRoom }: JoinEventResp) => {
-				setRooms((prevRooms: RoomPopulated[]) => {
-					const newRooms = [ ...prevRooms ];
-					const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === joinedRoom);
-					if (roomIndex >= 0) newRooms[roomIndex].users.push({ user: userDetails, unread: 0 });
-					return newRooms;
-				});
-			});
-			const leaveSubscription = chatSocket.onLeave().subscribe(({ userDetails, leftRoom }: LeaveEventResp) => {
-				setRooms((prevRooms: RoomPopulated[]) => {
-					const newRooms = [ ...prevRooms ];
-					const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === leftRoom);
-					if (roomIndex >= 0) {
-						newRooms[roomIndex].users = newRooms[roomIndex].users.filter(
-							(roomUser: RoomUserPopulated) => roomUser.user.username !== userDetails.username
-						);
-					}
-					return newRooms;
-				});
-			});
-			return () => {
-				joinSubscription.unsubscribe();
-				leaveSubscription.unsubscribe();
-			};
-		},
-		[ chatSocket ]
-	);
+	// useEffect(
+	// 	() => {
+	// 		if (chatSocket === null) return;
+	// 		const joinSubscription = chatSocket.onJoin().subscribe(({ userDetails, joinedRoom }: JoinEventResp) => {
+	// 			setRooms((prevRooms: RoomPopulated[]) => {
+	// 				const newRooms = [ ...prevRooms ];
+	// 				const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === joinedRoom);
+	// 				if (roomIndex >= 0) newRooms[roomIndex].users.push({ user: userDetails, unread: 0 });
+	// 				return newRooms;
+	// 			});
+	// 		});
+	// 		const leaveSubscription = chatSocket.onLeave().subscribe(({ userDetails, leftRoom }: LeaveEventResp) => {
+	// 			setRooms((prevRooms: RoomPopulated[]) => {
+	// 				const newRooms = [ ...prevRooms ];
+	// 				const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === leftRoom);
+	// 				if (roomIndex >= 0) {
+	// 					newRooms[roomIndex].users = newRooms[roomIndex].users.filter(
+	// 						(roomUser: RoomUserPopulated) => roomUser.user.username !== userDetails.username
+	// 					);
+	// 				}
+	// 				return newRooms;
+	// 			});
+	// 		});
+	// 		return () => {
+	// 			joinSubscription.unsubscribe();
+	// 			leaveSubscription.unsubscribe();
+	// 		};
+	// 	},
+	// 	[ chatSocket ]
+	// );
 
-	useEffect(
-		() => {
-			if (chatSocket === null) return;
-			const deleteSubscription = chatSocket.onRoomDelete().subscribe((deletedRoom: string) => {
-				snackbarMsg.current = `Room ${deletedRoom} has been deleted.`;
-				setOpenSnackbar(true);
-				if (roomCode === deletedRoom) setRoomCode((roomCode) => '');
-				setRooms((prevRooms: RoomPopulated[]) => prevRooms.filter((room: RoomPopulated) => room.code !== deletedRoom));
-			});
-			const messageSubscription = chatSocket.onMessage().subscribe(({ newMsg, updatedRoom }) => {
-				setRooms((prevRooms: RoomPopulated[]) => {
-					const newRooms = [ ...prevRooms ];
-					const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === newMsg.roomCode);
-					if (roomIndex >= 0) {
-						if (updatedRoom) newRooms[roomIndex] = updatedRoom;
-						if (newMsg.roomCode !== roomCode) {
-							newRooms[roomIndex] = updateUnread(newRooms[roomIndex], false);
-							audio.play();
-						}
-					}
-					return newRooms;
-				});
-			});
-			return () => {
-				deleteSubscription.unsubscribe();
-				messageSubscription.unsubscribe();
-			};
-		},
-		[ chatSocket, roomCode, userDetails.username, updateUnread ]
-	);
+	// useEffect(
+	// 	() => {
+	// 		if (chatSocket === null) return;
+	// 		const deleteSubscription = chatSocket.onRoomDelete().subscribe((deletedRoom: string) => {
+	// 			snackbarMsg.current = `Room ${deletedRoom} has been deleted.`;
+	// 			setOpenSnackbar(true);
+	// 			if (roomCode === deletedRoom) setRoomCode((roomCode) => '');
+	// 			setRooms((prevRooms: RoomPopulated[]) => prevRooms.filter((room: RoomPopulated) => room.code !== deletedRoom));
+	// 		});
+	// 		const messageSubscription = chatSocket.onMessage().subscribe(({ newMsg, updatedRoom }) => {
+	// 			setRooms((prevRooms: RoomPopulated[]) => {
+	// 				const newRooms = [ ...prevRooms ];
+	// 				const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === newMsg.roomCode);
+	// 				if (roomIndex >= 0) {
+	// 					if (updatedRoom) newRooms[roomIndex] = updatedRoom;
+	// 					if (newMsg.roomCode !== roomCode) {
+	// 						newRooms[roomIndex] = updateUnread(newRooms[roomIndex], false);
+	// 						audio.play();
+	// 					}
+	// 				}
+	// 				return newRooms;
+	// 			});
+	// 		});
+	// 		return () => {
+	// 			deleteSubscription.unsubscribe();
+	// 			messageSubscription.unsubscribe();
+	// 		};
+	// 	},
+	// 	[ chatSocket, roomCode, userDetails.username, updateUnread ]
+	// );
 
 	const getCurrentRoom = () => {
 		return rooms.find((room: RoomPopulated) => room.code === roomCode);

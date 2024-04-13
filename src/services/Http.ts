@@ -95,7 +95,7 @@ const leaveRoom = async (data: RoomData) => {
 const getRooms = async () => {
 	return new Promise<RoomsResp>(async (resolve, reject) => {
 		try {
-			const response = await axios.get('/rooms');
+			const response = await axios.get('/rooms/');
 			resolve(response.data);
 		} catch (error) {
 			reject(error);
