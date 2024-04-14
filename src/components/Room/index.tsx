@@ -5,7 +5,7 @@ import Sidebar from '../Sidebar';
 import NewRoom from '../NewRoom';
 import chatHttp from '../../services/Http';
 import RoomDetails from '../RoomDetails';
-import { useChat } from '../../context/ChatContext';
+import { useWsChat } from '../../context/WsChatContext';
 import GeneralSnackbar from '../GeneralSnackbar';
 import messageAudio from '../../assets/audio/message.mp3';
 import { useUser } from '../../context/UserContext';
@@ -26,7 +26,7 @@ const Room = ({ history }: RoomProps) => {
 	const snackbarMsg = useRef('');
 	const [ rooms, setRooms ] = useState([] as RoomPopulated[]);
 	const [ roomCode, setRoomCode ] = useState('');
-	const chatSocket = useChat();
+	const chatSocket = useWsChat();
 
 	const updateUnread = useCallback(
 		(room: RoomPopulated, willReset: boolean) => {
@@ -34,7 +34,7 @@ const Room = ({ history }: RoomProps) => {
 				(roomUser: RoomUserPopulated) => roomUser.user.username === userDetails.username
 			);
 			room.users[userIndex].unread = willReset ? 0 : ++room.users[userIndex].unread;
-			chatSocket.updateUnread(room.users[userIndex].unread, room.code, userDetails.username);
+			chatSocket.updateUnread({ unread: room.users[userIndex].unread, roomCode: room.code, username: userDetails.username});
 			return room;
 		},
 		[ chatSocket, userDetails.username ]
@@ -43,7 +43,7 @@ const Room = ({ history }: RoomProps) => {
 	useEffect(
 		() => {
 			console.log('Initializing Socket Context..');
-			// chatSocket.init();
+			chatSocket.init();
 			chatHttp
 				.getRooms()
 				.then(({ data }) => {
@@ -54,7 +54,7 @@ const Room = ({ history }: RoomProps) => {
 					if (data.rooms[0]) {
 						setRoomCode(data.rooms[0].code);
 						data.rooms.forEach((room: RoomPopulated) => {
-							chatSocket.join({ name: userDetails.username || '', room: room.code });
+							chatSocket.join({ username: userDetails.username || '', roomCode: room.code });
 						});
 					}
 				})

@@ -92,12 +92,54 @@ export interface JoinEventResp extends RoomEventResp {
 export interface LeaveEventResp extends RoomEventResp {
 	leftRoom: string;
 }
-export interface MessageEventResp {
-	newMsg: MessagePopulated;
-	updatedRoom: RoomPopulated;
-}
+// export interface MessageEventResp {
+// 	newMsg: MessagePopulated;
+// 	updatedRoom: RoomPopulated;
+// }
 export interface MessagesResp extends BaseResponse {
 	data: {
 		messages: MessagePopulated[];
 	};
+}
+
+export type EventType = "message" | "join-room" | "update-unread"
+export type MessageType = "normal" | "system" | "summary"
+
+export interface BaseEventResp {
+	eventType: EventType;
+	data: JoinRoomEventResp | MessageEventResp;
+}
+export interface JoinRoomEventResp {
+	roomCode: string;	
+}
+export interface MessageEventResp {
+	message: {
+		type: MessageType;
+		content: string;
+	};
+	room: {
+		roomCode: string;
+	}
+}
+
+export interface BaseEventReq {
+	eventType: EventType;
+	data: JoinRoomEventReq | MessageEventReq | UpdateUnreadEventReq;
+}
+export interface JoinRoomEventReq {
+	username: string;
+	roomCode: string;
+}
+export interface UpdateUnreadEventReq {
+	username: string;
+	roomCode: string;
+	unread: number;
+}
+export interface MessageEventReq {
+	message: {
+		content: string;
+	};
+	room: {
+		roomCode: string;
+	}
 }
