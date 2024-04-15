@@ -18,6 +18,7 @@ export interface RoomUserPopulated {
 }
 
 export interface RoomPopulated {
+	name: string;
 	code: string;
 	description: string;
 	lastActivity?: Date;
@@ -52,6 +53,7 @@ export interface LoginStatusData {
 	newValue: boolean;
 }
 export interface NewRoomData {
+	name: string;
 	description: string;
 }
 export interface RoomData {
@@ -69,6 +71,9 @@ export interface LoginResp extends BaseResponse {
 	data: {
 		userDetails: User;
 	};
+}
+export interface WsTokenResp extends BaseResponse {
+	wsToken: string;
 }
 export interface UserResp extends BaseResponse {
 	user: User;
@@ -92,10 +97,10 @@ export interface JoinEventResp extends RoomEventResp {
 export interface LeaveEventResp extends RoomEventResp {
 	leftRoom: string;
 }
-// export interface MessageEventResp {
-// 	newMsg: MessagePopulated;
-// 	updatedRoom: RoomPopulated;
-// }
+export interface MessageEventResp {
+	newMsg: MessagePopulated;
+	updatedRoom: RoomPopulated;
+}
 export interface MessagesResp extends BaseResponse {
 	data: {
 		messages: MessagePopulated[];
@@ -112,18 +117,18 @@ export interface BaseEventResp {
 export interface JoinRoomEventResp {
 	roomCode: string;	
 }
-export interface MessageEventResp {
-	message: {
-		type: MessageType;
-		content: string;
-	};
-	room: {
-		roomCode: string;
-	}
-}
+// export interface MessageEventResp {
+// 	message: {
+// 		type: MessageType;
+// 		content: string;
+// 	};
+// 	room: {
+// 		roomCode: string;
+// 	}
+// }
 
 export interface BaseEventReq {
-	eventType: EventType;
+	eventType: EventType	;
 	data: JoinRoomEventReq | MessageEventReq | UpdateUnreadEventReq;
 }
 export interface JoinRoomEventReq {

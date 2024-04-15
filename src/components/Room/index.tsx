@@ -11,7 +11,7 @@ import messageAudio from '../../assets/audio/message.mp3';
 import { useUser } from '../../context/UserContext';
 import { USER_INITIAL_VALUE } from '../../constants';
 import { useHistory } from 'react-router-dom';
-import { JoinEventResp, LeaveEventResp, RoomPopulated, RoomUserPopulated } from '../../types';
+import { JoinRoomEventResp, LeaveEventResp, RoomPopulated, RoomUserPopulated } from '../../types';
 
 export interface RoomProps {
 	history: ReturnType<typeof useHistory>;
@@ -40,6 +40,16 @@ const Room = ({ history }: RoomProps) => {
 		[ chatSocket, userDetails.username ]
 	);
 
+	// useEffect(() => {
+    //     const subscription = chatSocket.getWebSocketSubject().subscribe({
+    //         next: msg => console.log('Received message:', msg),
+    //         error: err => console.error('WebSocket error:', err),
+    //         complete: () => console.log('WebSocket connection closed'),
+    //     });
+
+    //     return () => subscription.unsubscribe();
+    // }, [chatSocket]);
+
 	useEffect(
 		() => {
 			console.log('Initializing Socket Context..');
@@ -59,7 +69,7 @@ const Room = ({ history }: RoomProps) => {
 					}
 				})
 				.catch(({ response }) => {
-					if (response.status === 401) {
+					if (response.status === 401 || response.status === 403) {
 						localStorage.clear();
 						setUserDetails(USER_INITIAL_VALUE);
 						history.push('/login');
@@ -69,36 +79,36 @@ const Room = ({ history }: RoomProps) => {
 		[ history, chatSocket, userDetails.username, setUserDetails, updateUnread ]
 	);
 
-	// useEffect(
-	// 	() => {
-	// 		if (chatSocket === null) return;
-	// 		const joinSubscription = chatSocket.onJoin().subscribe(({ userDetails, joinedRoom }: JoinEventResp) => {
-	// 			setRooms((prevRooms: RoomPopulated[]) => {
-	// 				const newRooms = [ ...prevRooms ];
-	// 				const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === joinedRoom);
-	// 				if (roomIndex >= 0) newRooms[roomIndex].users.push({ user: userDetails, unread: 0 });
-	// 				return newRooms;
-	// 			});
-	// 		});
-	// 		const leaveSubscription = chatSocket.onLeave().subscribe(({ userDetails, leftRoom }: LeaveEventResp) => {
-	// 			setRooms((prevRooms: RoomPopulated[]) => {
-	// 				const newRooms = [ ...prevRooms ];
-	// 				const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === leftRoom);
-	// 				if (roomIndex >= 0) {
-	// 					newRooms[roomIndex].users = newRooms[roomIndex].users.filter(
-	// 						(roomUser: RoomUserPopulated) => roomUser.user.username !== userDetails.username
-	// 					);
-	// 				}
-	// 				return newRooms;
-	// 			});
-	// 		});
-	// 		return () => {
-	// 			joinSubscription.unsubscribe();
-	// 			leaveSubscription.unsubscribe();
-	// 		};
-	// 	},
-	// 	[ chatSocket ]
-	// );
+	useEffect(
+		() => {
+			if (chatSocket === null) return;
+			const joinSubscription = chatSocket.onJoinRoom()?.subscribe(({ roomCode }: JoinRoomEventResp) => {
+				setRooms((prevRooms: RoomPopulated[]) => {
+					const newRooms = [ ...prevRooms ];
+					const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === roomCode);
+					if (roomIndex >= 0) newRooms[roomIndex].users.push({ user: userDetails, unread: 0 });
+					return newRooms;
+				});
+			});
+			// const leaveSubscription = chatSocket.onLeave().subscribe(({ userDetails, leftRoom }: LeaveEventResp) => {
+			// 	setRooms((prevRooms: RoomPopulated[]) => {
+			// 		const newRooms = [ ...prevRooms ];
+			// 		const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === leftRoom);
+			// 		if (roomIndex >= 0) {
+			// 			newRooms[roomIndex].users = newRooms[roomIndex].users.filter(
+			// 				(roomUser: RoomUserPopulated) => roomUser.user.username !== userDetails.username
+			// 			);
+			// 		}
+			// 		return newRooms;
+			// 	});
+			// });
+			return () => {
+				joinSubscription?.unsubscribe();
+				// leaveSubscription.unsubscribe();
+			};
+		},
+		[ chatSocket ]
+	);
 
 	// useEffect(
 	// 	() => {

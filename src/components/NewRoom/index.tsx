@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, ButtonGroup, Dialog, DialogTitle, DialogContent } from '@material-ui/core';
 import chatHttp from '../../services/Http';
 import './style.css';
-import { useChat } from '../../context/ChatContext';
+import { useWsChat } from '../../context/WsChatContext';
 import { useUser } from '../../context/UserContext';
 import { RoomPopulated } from '../../types';
 
@@ -14,8 +14,9 @@ export interface NewRoomProps {
 function NewRoom({ open, onClose }: NewRoomProps) {
 	const [ isNew, setisNew ] = useState(true);
 	const [ description, setDescription ] = useState('');
+	const [ roomName, setRoomName ] = useState('');
 	const [ roomCode, setRoomCode ] = useState('');
-	const chatSocket = useChat();
+	const chatSocket = useWsChat();
 	const { userDetails } = useUser();
 
 	const handleClose = (val: null | RoomPopulated) => {
@@ -26,15 +27,15 @@ function NewRoom({ open, onClose }: NewRoomProps) {
 		e.preventDefault();
 		if (isNew || (!isNew && roomCode)) {
 			try {
-				let { data } = isNew ? await chatHttp.createRoom({ description }) : await chatHttp.joinRoom({ roomCode });
+				let { data } = isNew ? await chatHttp.createRoom({ name: roomName, description }) : await chatHttp.joinRoom({ roomCode });
 				if (data) {
-					chatSocket.join({ name: userDetails.username, room: data.room.code }, true);
+					chatSocket.join({ username: userDetails.username, roomCode: data.room.code });
 					setisNew(true);
 					setDescription('');
 					setRoomCode('');
 					handleClose(data.room);
 				}
-			} catch (e) {
+			} catch (e: any) {
 				console.log(e.response.data);
 			}
 		}
@@ -60,14 +61,16 @@ function NewRoom({ open, onClose }: NewRoomProps) {
 						</Button>
 					</ButtonGroup>
 
-					{isNew ? (
+					{isNew ? ([
+						<input key={'roomname'} value={roomName} onChange={(e) => setRoomName(e.target.value)} type="text" placeholder="Room Name" />,
 						<textarea
+							key={'roomdesc'}
 							rows={3}
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
-							placeholder="Room Description"
+							placeholder="Room Description (optional)"
 						/>
-					) : (
+					]) : (
 						<input value={roomCode} onChange={(e) => setRoomCode(e.target.value)} type="text" placeholder="Room Code" />
 					)}
 
@@ -79,7 +82,7 @@ function NewRoom({ open, onClose }: NewRoomProps) {
 						color="primary"
 						size="large"
 					>
-						Proceed
+						{isNew ? 'Create Room' : 'Join Room' }
 					</Button>
 				</form>
 			</DialogContent>

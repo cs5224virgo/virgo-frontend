@@ -11,7 +11,8 @@ import {
 	UserResp,
 	RoomResp,
 	RoomsResp,
-	MessagesResp
+	MessagesResp,
+	WsTokenResp,
 } from './../types';
 import axios from './Axios';
 
@@ -41,6 +42,17 @@ const login = async (data: LoginData) => {
 	return new Promise<LoginResp>(async (resolve, reject) => {
 		try {
 			const response = await axios.post('/users/login', data);
+			resolve(response.data);
+		} catch (error) {
+			reject(error);
+		}
+	});
+};
+
+const getWsToken = async () => {
+	return new Promise<WsTokenResp>(async (resolve, reject) => {
+		try {
+			const response = await axios.get('/users/wstoken');
 			resolve(response.data);
 		} catch (error) {
 			reject(error);
@@ -130,6 +142,7 @@ const chatHttp = {
 	changeLoginStatus,
 	register,
 	login,
+	getWsToken,
 	createRoom,
 	joinRoom,
 	leaveRoom,

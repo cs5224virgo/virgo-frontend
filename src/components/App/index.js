@@ -10,6 +10,8 @@ import { USER_INITIAL_VALUE } from '../../constants';
 import { UserContext } from '../../context/UserContext';
 import { ChatContext } from '../../context/ChatContext';
 import { StylesProvider } from '@material-ui/core/styles';
+import { WsChatContext } from '../../context/WsChatContext';
+import { WebSocketService } from '../../services/WebSocketService';
 
 const routes = [
 	{ path: '/signup', component: SignUp },
@@ -18,7 +20,8 @@ const routes = [
 	{ path: '/', component: Login }
 ];
 
-const chat = new SocketService();
+// const chat = new SocketService();
+const wsChat = new WebSocketService();
 
 function App() {
 	const userJSON = localStorage.getItem('chat-app-user');
@@ -27,7 +30,8 @@ function App() {
 	return (
 		<StylesProvider injectFirst>
 			<UserContext.Provider value={{ userDetails, setUserDetails }}>
-				<ChatContext.Provider value={chat}>
+				{/* <ChatContext.Provider value={chat}> */}
+					<WsChatContext.Provider value={wsChat}>
 					<div className="app">
 						<Router>
 							<Switch>
@@ -36,7 +40,8 @@ function App() {
 							</Switch>
 						</Router>
 					</div>
-				</ChatContext.Provider>
+					</WsChatContext.Provider>
+				{/* </ChatContext.Provider> */}
 			</UserContext.Provider>
 		</StylesProvider>
 	);

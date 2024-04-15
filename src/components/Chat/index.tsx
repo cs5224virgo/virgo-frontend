@@ -25,34 +25,34 @@ const Chat = ({ roomCode }: ChatProps) => {
 		}
 	}, []);
 
-	useEffect(
-		() => {
-			if (chatSocket === null) return;
-			const subscription = chatSocket.onMessage().subscribe(({ newMsg, updatedRoom }) => {
-				if (newMsg.roomCode === roomCode) {
-					setMessages((prevMsgs) => [ ...prevMsgs, newMsg ]);
-				}
-			});
-			return () => {
-				subscription.unsubscribe();
-			};
-		},
-		[ chatSocket, roomCode ]
-	);
+	// useEffect(
+	// 	() => {
+	// 		if (chatSocket === null) return;
+	// 		const subscription = chatSocket.onMessage().subscribe(({ newMsg, updatedRoom }) => {
+	// 			if (newMsg.roomCode === roomCode) {
+	// 				setMessages((prevMsgs) => [ ...prevMsgs, newMsg ]);
+	// 			}
+	// 		});
+	// 		return () => {
+	// 			subscription.unsubscribe();
+	// 		};
+	// 	},
+	// 	[ chatSocket, roomCode ]
+	// );
 
-	useEffect(
-		() => {
-			chatHttp
-				.getMessages({ roomCode })
-				.then(({ data }) => {
-					setMessages((prevMsgs) => data.messages);
-				})
-				.catch(({ response }) => {
-					console.log(response.data);
-				});
-		},
-		[ roomCode ]
-	);
+	// useEffect(
+	// 	() => {
+	// 		chatHttp
+	// 			.getMessages({ roomCode })
+	// 			.then(({ data }) => {
+	// 				setMessages((prevMsgs) => data.messages);
+	// 			})
+	// 			.catch(({ response }) => {
+	// 				console.log(response.data);
+	// 			});
+	// 	},
+	// 	[ roomCode ]
+	// );
 
 	const formatDate = (date: Date) => {
 		return differenceInCalendarDays(new Date(), date) > 2
