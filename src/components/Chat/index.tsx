@@ -6,10 +6,10 @@ import { MessagePopulated } from '../../types';
 import chatHttp from '../../services/Http';
 import { parseISO, differenceInCalendarDays, format, formatDistanceToNow } from 'date-fns';
 import PersonIcon from '@material-ui/icons/Person';
-import { useChat } from '../../context/ChatContext';
 import { useUser } from '../../context/UserContext';
 import ChatHeader from '../ChatHeader';
 import ChatFooter from '../ChatFooter';
+import { useWsChat } from '../../context/WsChatContext';
 
 export interface ChatProps {
 	roomCode: string;
@@ -17,7 +17,7 @@ export interface ChatProps {
 
 const Chat = ({ roomCode }: ChatProps) => {
 	const [ messages, setMessages ] = useState([] as MessagePopulated[]);
-	const chatSocket = useChat();
+	const chatSocket = useWsChat();
 	const { userDetails } = useUser();
 	const setRef = useCallback((node) => {
 		if (node) {
@@ -25,34 +25,34 @@ const Chat = ({ roomCode }: ChatProps) => {
 		}
 	}, []);
 
-	// useEffect(
-	// 	() => {
-	// 		if (chatSocket === null) return;
-	// 		const subscription = chatSocket.onMessage().subscribe(({ newMsg, updatedRoom }) => {
-	// 			if (newMsg.roomCode === roomCode) {
-	// 				setMessages((prevMsgs) => [ ...prevMsgs, newMsg ]);
-	// 			}
-	// 		});
-	// 		return () => {
-	// 			subscription.unsubscribe();
-	// 		};
-	// 	},
-	// 	[ chatSocket, roomCode ]
-	// );
+	useEffect(
+		() => {
+			if (chatSocket === null) return;
+			const subscription = chatSocket.onNewMessage.subscribe(({ message: newMsg, room: updatedRoom }) => {
+				if (newMsg.roomCode === roomCode) {
+					setMessages((prevMsgs) => [ ...prevMsgs, newMsg ]);
+				}
+			});
+			return () => {
+				subscription.unsubscribe();
+			};
+		},
+		[ chatSocket, roomCode ]
+	);
 
-	// useEffect(
-	// 	() => {
-	// 		chatHttp
-	// 			.getMessages({ roomCode })
-	// 			.then(({ data }) => {
-	// 				setMessages((prevMsgs) => data.messages);
-	// 			})
-	// 			.catch(({ response }) => {
-	// 				console.log(response.data);
-	// 			});
-	// 	},
-	// 	[ roomCode ]
-	// );
+	useEffect(
+		() => {
+			chatHttp
+				.getMessages({ roomCode })
+				.then(({ data }) => {
+					setMessages(() => data.messages);
+				})
+				.catch(({ response }) => {
+					console.log(response.data);
+				});
+		},
+		[ roomCode ]
+	);
 
 	const formatDate = (date: Date) => {
 		return differenceInCalendarDays(new Date(), date) > 2

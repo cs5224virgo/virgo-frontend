@@ -5,7 +5,6 @@ export interface User {
 
 export interface MessagePopulated {
 	content: string;
-	status?: string;
 	isSystem?: boolean;
 	user: User;
 	roomCode: string;
@@ -59,6 +58,10 @@ export interface NewRoomData {
 export interface RoomData {
 	roomCode: string;
 }
+export interface AddUserData {
+	username: string;
+	roomCode: string;
+}
 
 export interface BaseResponse {
 	success: boolean;
@@ -107,31 +110,39 @@ export interface MessagesResp extends BaseResponse {
 	};
 }
 
-export type EventType = "message" | "join-room" | "update-unread"
+export type EventTypeResp = "resp-new-message" | "resp-new-room" | "resp-join-room" | "resp-update-unread" | "resp-leave-room"
 export type MessageType = "normal" | "system" | "summary"
 
 export interface BaseEventResp {
-	eventType: EventType;
-	data: JoinRoomEventResp | MessageEventResp;
+	eventType: EventTypeResp;
+	data: ResumeRoomEventResp | JoinRoomEventResp | NewRoomEventResp | LeaveRoomEventResp | NewMessageEventResp;
+}
+export interface ResumeRoomEventResp {
+	roomCode: string;
 }
 export interface JoinRoomEventResp {
+	user: User;
 	roomCode: string;	
 }
-// export interface MessageEventResp {
-// 	message: {
-// 		type: MessageType;
-// 		content: string;
-// 	};
-// 	room: {
-// 		roomCode: string;
-// 	}
-// }
+export interface NewRoomEventResp {
+	room: RoomPopulated;
+}
+export interface LeaveRoomEventResp {
+	user: User;
+	roomCode: string;
+}
+export interface NewMessageEventResp {
+	message: MessagePopulated;
+	room: RoomPopulated;
+}
+
+export type EventTypeReq = "req-message" | "req-resume-room" | "req-update-unread" | "req-new-message"
 
 export interface BaseEventReq {
-	eventType: EventType	;
-	data: JoinRoomEventReq | MessageEventReq | UpdateUnreadEventReq;
+	eventType: EventTypeReq;
+	data: ResumeRoomEventReq | NewMessageEventReq | UpdateUnreadEventReq;
 }
-export interface JoinRoomEventReq {
+export interface ResumeRoomEventReq {
 	username: string;
 	roomCode: string;
 }
@@ -140,11 +151,8 @@ export interface UpdateUnreadEventReq {
 	roomCode: string;
 	unread: number;
 }
-export interface MessageEventReq {
-	message: {
-		content: string;
-	};
-	room: {
-		roomCode: string;
-	}
+export interface NewMessageEventReq {
+	content: string;
+	username: string;
+	roomCode: string;
 }

@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Button, ButtonGroup, Dialog, DialogTitle, DialogContent } from '@material-ui/core';
 import chatHttp from '../../services/Http';
 import './style.css';
-import { useWsChat } from '../../context/WsChatContext';
-import { useUser } from '../../context/UserContext';
 import { RoomPopulated } from '../../types';
 
 export interface NewRoomProps {
@@ -16,8 +14,6 @@ function NewRoom({ open, onClose }: NewRoomProps) {
 	const [ description, setDescription ] = useState('');
 	const [ roomName, setRoomName ] = useState('');
 	const [ roomCode, setRoomCode ] = useState('');
-	const chatSocket = useWsChat();
-	const { userDetails } = useUser();
 
 	const handleClose = (val: null | RoomPopulated) => {
 		onClose(val);
@@ -29,7 +25,6 @@ function NewRoom({ open, onClose }: NewRoomProps) {
 			try {
 				let { data } = isNew ? await chatHttp.createRoom({ name: roomName, description }) : await chatHttp.joinRoom({ roomCode });
 				if (data) {
-					chatSocket.join({ username: userDetails.username, roomCode: data.room.code });
 					setisNew(true);
 					setDescription('');
 					setRoomCode('');

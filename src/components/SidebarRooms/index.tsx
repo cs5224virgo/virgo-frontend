@@ -24,7 +24,7 @@ const SidebarRoom = ({ room, userDetails, onRoomClick }: SidebarRoomProps) => {
 					<div
 						className={`sidebarRoom__details ${room.users[userIndex].unread > 0 && 'sidebarRoom__details--unread'} `}
 					>
-						<h2>{room.code}</h2>
+						<h2>{room.name}</h2>
 						<p>{room.lastMessagePreview || room.description}</p>
 					</div>
 					{room.users[userIndex].unread > 0 && (

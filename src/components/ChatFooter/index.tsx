@@ -1,9 +1,9 @@
 import { IconButton } from '@material-ui/core';
 import React, { useState } from 'react';
-import { useChat } from '../../context/ChatContext';
 import SendIcon from '@material-ui/icons/Send';
-import { ChatMessage, User } from '../../types';
+import { NewMessageEventReq, User } from '../../types';
 import './style.css';
+import { useWsChat } from '../../context/WsChatContext';
 
 export interface ChatFooterProps {
 	roomCode: string;
@@ -11,16 +11,14 @@ export interface ChatFooterProps {
 }
 function ChatFooter({ roomCode, loggedInUser }: ChatFooterProps) {
 	const [ input, setInput ] = useState('');
-	const chatSocket = useChat();
+	const chatSocket = useWsChat();
 	const sendMessage = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		e.preventDefault();
 		if (input) {
-			const messageDetails: ChatMessage = {
-				userRoom: {
-					name: loggedInUser.username,
-					room: roomCode
-				},
-				content: input
+			const messageDetails: NewMessageEventReq = {
+				username: loggedInUser.username,
+				roomCode: roomCode,
+				content: input,
 			};
 			setInput('');
 

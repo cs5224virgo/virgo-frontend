@@ -11,7 +11,7 @@ import messageAudio from '../../assets/audio/message.mp3';
 import { useUser } from '../../context/UserContext';
 import { USER_INITIAL_VALUE } from '../../constants';
 import { useHistory } from 'react-router-dom';
-import { JoinRoomEventResp, LeaveEventResp, RoomPopulated, RoomUserPopulated } from '../../types';
+import { JoinRoomEventResp, LeaveRoomEventResp, NewRoomEventResp, RoomPopulated, RoomUserPopulated } from '../../types';
 
 export interface RoomProps {
 	history: ReturnType<typeof useHistory>;
@@ -42,9 +42,9 @@ const Room = ({ history }: RoomProps) => {
 
 	// useEffect(() => {
     //     const subscription = chatSocket.getWebSocketSubject().subscribe({
-    //         next: msg => console.log('Received message:', msg),
-    //         error: err => console.error('WebSocket error:', err),
-    //         complete: () => console.log('WebSocket connection closed'),
+    //         next: msg => { console.log('Received message:', msg); setSocketActive(true) },
+    //         error: err => { console.error('WebSocket error:', err); setSocketActive(false) },
+    //         complete: () => { console.log('WebSocket connection closed'); setSocketActive(false) },
     //     });
 
     //     return () => subscription.unsubscribe();
@@ -54,6 +54,17 @@ const Room = ({ history }: RoomProps) => {
 		() => {
 			console.log('Initializing Socket Context..');
 			chatSocket.init();
+			// chatHttp
+			// 	.getWsToken()
+			// 	.then(({ wsToken }) => {
+			// 		chatSocket.init();
+			// 		setTimeout(function(){
+			// 			setSocketActive(true);
+			// 		}, 500);
+			// 	})
+			// 	.catch(( response: any ) => {
+			// 		console.log(response);
+			// 	});
 			chatHttp
 				.getRooms()
 				.then(({ data }) => {
@@ -64,7 +75,7 @@ const Room = ({ history }: RoomProps) => {
 					if (data.rooms[0]) {
 						setRoomCode(data.rooms[0].code);
 						data.rooms.forEach((room: RoomPopulated) => {
-							chatSocket.join({ username: userDetails.username || '', roomCode: room.code });
+							chatSocket.resume({ username: userDetails.username || '', roomCode: room.code });
 						});
 					}
 				})
@@ -82,64 +93,80 @@ const Room = ({ history }: RoomProps) => {
 	useEffect(
 		() => {
 			if (chatSocket === null) return;
-			const joinSubscription = chatSocket.onJoinRoom()?.subscribe(({ roomCode }: JoinRoomEventResp) => {
+			const joinRoomSubscription = chatSocket.onJoinRoom.subscribe(({ user, roomCode }: JoinRoomEventResp) => {
 				setRooms((prevRooms: RoomPopulated[]) => {
 					const newRooms = [ ...prevRooms ];
 					const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === roomCode);
-					if (roomIndex >= 0) newRooms[roomIndex].users.push({ user: userDetails, unread: 0 });
+					if (roomIndex >= 0) {
+						const roomUsers = newRooms[roomIndex].users;
+						if (!roomUsers.some(u => u.user.username === user.username)) {
+							roomUsers.push({ user: user, unread: 0 });
+						}
+					}
 					return newRooms;
 				});
 			});
-			// const leaveSubscription = chatSocket.onLeave().subscribe(({ userDetails, leftRoom }: LeaveEventResp) => {
-			// 	setRooms((prevRooms: RoomPopulated[]) => {
-			// 		const newRooms = [ ...prevRooms ];
-			// 		const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === leftRoom);
-			// 		if (roomIndex >= 0) {
-			// 			newRooms[roomIndex].users = newRooms[roomIndex].users.filter(
-			// 				(roomUser: RoomUserPopulated) => roomUser.user.username !== userDetails.username
-			// 			);
-			// 		}
-			// 		return newRooms;
-			// 	});
-			// });
+			const newRoomSubscription = chatSocket.onNewRoom.subscribe(({ room: newRoom }: NewRoomEventResp) => {
+				setRooms((prevRooms: RoomPopulated[]) => {
+					if (newRoom && (!prevRooms.some(room => room.code === newRoom.code))) {
+						const newRooms = [ ...prevRooms, newRoom ];
+						return newRooms;
+					}
+					return prevRooms
+				});
+				
+			})
+			const leaveRoomSubscription = chatSocket.onLeaveRoom.subscribe(({ user: leftUser, roomCode: leftRoomCode }: LeaveRoomEventResp) => {
+				setRooms((prevRooms: RoomPopulated[]) => {
+					const newRooms = [ ...prevRooms ];
+					const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === leftRoomCode);
+					if (roomIndex >= 0) {
+						newRooms[roomIndex].users = newRooms[roomIndex].users.filter(
+							(roomUser: RoomUserPopulated) => roomUser.user.username !== leftUser.username
+						);
+					}
+					return newRooms;
+				});
+			});
 			return () => {
-				joinSubscription?.unsubscribe();
-				// leaveSubscription.unsubscribe();
+				joinRoomSubscription.unsubscribe();
+				newRoomSubscription.unsubscribe();
+				leaveRoomSubscription.unsubscribe();
 			};
 		},
 		[ chatSocket ]
 	);
 
-	// useEffect(
-	// 	() => {
-	// 		if (chatSocket === null) return;
-	// 		const deleteSubscription = chatSocket.onRoomDelete().subscribe((deletedRoom: string) => {
-	// 			snackbarMsg.current = `Room ${deletedRoom} has been deleted.`;
-	// 			setOpenSnackbar(true);
-	// 			if (roomCode === deletedRoom) setRoomCode((roomCode) => '');
-	// 			setRooms((prevRooms: RoomPopulated[]) => prevRooms.filter((room: RoomPopulated) => room.code !== deletedRoom));
-	// 		});
-	// 		const messageSubscription = chatSocket.onMessage().subscribe(({ newMsg, updatedRoom }) => {
-	// 			setRooms((prevRooms: RoomPopulated[]) => {
-	// 				const newRooms = [ ...prevRooms ];
-	// 				const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === newMsg.roomCode);
-	// 				if (roomIndex >= 0) {
-	// 					if (updatedRoom) newRooms[roomIndex] = updatedRoom;
-	// 					if (newMsg.roomCode !== roomCode) {
-	// 						newRooms[roomIndex] = updateUnread(newRooms[roomIndex], false);
-	// 						audio.play();
-	// 					}
-	// 				}
-	// 				return newRooms;
-	// 			});
-	// 		});
-	// 		return () => {
-	// 			deleteSubscription.unsubscribe();
-	// 			messageSubscription.unsubscribe();
-	// 		};
-	// 	},
-	// 	[ chatSocket, roomCode, userDetails.username, updateUnread ]
-	// );
+	useEffect(
+		() => {
+			if (chatSocket === null) return;
+			// const deleteSubscription = chatSocket.onRoomDelete().subscribe((deletedRoom: string) => {
+			// 	snackbarMsg.current = `Room ${deletedRoom} has been deleted.`;
+			// 	setOpenSnackbar(true);
+			// 	if (roomCode === deletedRoom) setRoomCode((roomCode) => '');
+			// 	setRooms((prevRooms: RoomPopulated[]) => prevRooms.filter((room: RoomPopulated) => room.code !== deletedRoom));
+			// });
+			const messageSubscription = chatSocket.onNewMessage.subscribe(({ message: newMsg, room: updatedRoom }) => {
+				setRooms((prevRooms: RoomPopulated[]) => {
+					const newRooms = [ ...prevRooms ];
+					const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === newMsg.roomCode);
+					if (roomIndex >= 0) {
+						if (updatedRoom) newRooms[roomIndex] = updatedRoom;
+						if (newMsg.roomCode !== roomCode) {
+							newRooms[roomIndex] = updateUnread(newRooms[roomIndex], false);
+							audio.play();
+						}
+					}
+					return newRooms;
+				});
+			});
+			return () => {
+				// deleteSubscription.unsubscribe();
+				messageSubscription.unsubscribe();
+			};
+		},
+		[ chatSocket, roomCode, userDetails.username, updateUnread ]
+	);
 
 	const getCurrentRoom = () => {
 		return rooms.find((room: RoomPopulated) => room.code === roomCode);
@@ -151,6 +178,7 @@ const Room = ({ history }: RoomProps) => {
 			const newRooms = [ ...prevRooms ];
 			const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === code);
 			newRooms[roomIndex] = updateUnread(newRooms[roomIndex], true);
+			console.log(newRooms[roomIndex].createdAt);
 			return newRooms;
 		});
 	};
@@ -168,13 +196,22 @@ const Room = ({ history }: RoomProps) => {
 		setOpenModal(false);
 	};
 
+	const handleAddUser = (newRoom: RoomPopulated) => {
+		setRooms((prevRooms: RoomPopulated[]) => {
+			const newRooms = [ ...prevRooms ];
+			const roomIndex = newRooms.findIndex((room: RoomPopulated) => room.code === roomCode);
+			newRooms[roomIndex] = newRoom;
+			return newRooms;
+		});
+	}
+
 	return (
 		<div className="room">
 			<Sidebar onNewRoom={() => setOpenModal(true)} rooms={rooms} history={history} onRoomClick={handleRoomClick} />
 			{roomCode ? (
 				<React.Fragment>
 					<Chat roomCode={roomCode} />
-					<RoomDetails roomDetails={getCurrentRoom()!} onRoomLeave={handleRoomLeave} />
+					<RoomDetails roomDetails={getCurrentRoom()!} onRoomLeave={handleRoomLeave} onAddUser={handleAddUser} />
 				</React.Fragment>
 			) : (
 				<div className="chat chat--no-room">

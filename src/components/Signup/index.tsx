@@ -39,6 +39,13 @@ function SignUp({ history }: SignUpProps) {
 
 	const checkAvailability = async (username: string) => {
 		setUsername(username);
+		const allowedChars = /^[a-zA-Z0-9_-]+$/;
+		if (!allowedChars.test(username)) {
+			setErrorMsg('username has illegal characters');
+			return;
+		} else {
+			setErrorMsg('');
+		}
 		chatHttp
 			.checkAvailability({ username })
 			.then((resp) => {

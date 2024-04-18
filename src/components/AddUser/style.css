@@ -1,0 +1,40 @@
+.addUser__content {
+	padding: 1rem;
+}
+.addUser__content > form {
+	text-align: center;
+}
+.addUser__content > form input,
+.addUser__content > form textarea {
+	margin: 0.35rem 0;
+	width: calc(100% - 2rem);
+}
+.addUser__content > form textarea {
+	resize: none;
+}
+
+.addUser__type {
+	margin: 0.35rem auto;
+	width: 100%;
+}
+.addUser__type .addUser__button {
+	color: #219ebc;
+	border: 1px solid rgba(33, 158, 188, 0.5);
+}
+.addUser__type .addUser__button:hover {
+	border: 1px solid rgba(30, 143, 172, 1);
+}
+.addUser__button--selected.MuiButton-outlined {
+	background-color: #219ebc;
+}
+.addUser__button--selected.MuiButton-outlined:hover {
+	background-color: #1e8fac;
+}
+.addUser__button--selected span,
+.addUser__button--selected:hover span {
+	color: #fff;
+}
+
+.addUser__content .secondary {
+	margin: 1.5rem auto 1rem;
+}

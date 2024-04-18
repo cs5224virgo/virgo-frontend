@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './style.css';
 import SidebarRoom from '../SidebarRooms';
 import { useHistory } from 'react-router-dom';
@@ -16,6 +16,21 @@ export interface SidebarProps {
 
 const Sidebar = ({ onNewRoom, rooms, history, onRoomClick }: SidebarProps) => {
 	const { userDetails } = useUser();
+	const [ sortedRooms, setSortedRooms ] = useState([] as RoomPopulated[]);
+	
+	useEffect(
+		() => {
+			setSortedRooms(() => {
+				return rooms.sort((a,b) => {
+					const dateA = new Date(a.lastActivity? a.lastActivity : a.createdAt).getTime();
+					const dateB = new Date(b.lastActivity? b.lastActivity : b.createdAt).getTime();
+					return dateB - dateA;
+				});
+			});
+		},
+		[ rooms ]
+	);
+
 	return (
 		<div className="sidebar">
 			<SidebarHeader onNewRoom={onNewRoom} history={history} />
@@ -30,7 +45,7 @@ const Sidebar = ({ onNewRoom, rooms, history, onRoomClick }: SidebarProps) => {
 
 			<div className="sidebar__rooms">
 				<Scrollbar className="sidebar__scrollbar">
-					{rooms.map((room: RoomPopulated, i: number) => (
+					{sortedRooms.map((room: RoomPopulated, i: number) => (
 						<SidebarRoom key={i} room={room} userDetails={userDetails} onRoomClick={onRoomClick} />
 					))}
 				</Scrollbar>

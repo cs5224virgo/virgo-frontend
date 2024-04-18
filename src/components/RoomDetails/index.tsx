@@ -4,19 +4,21 @@ import { Avatar, List, ListItem, ListItemAvatar, ListItemIcon, ListItemText } fr
 import ConfirmationDialog from '../ConfirmationDialog';
 import chatHttp from '../../services/Http';
 import { useUser } from '../../context/UserContext';
-import PhotoIcon from '@material-ui/icons/Photo';
+import AddIcon from '@material-ui/icons/Add';
 import MeetingRoomIcon from '@material-ui/icons/MeetingRoom';
-import DeleteIcon from '@material-ui/icons/Delete';
 import PersonIcon from '@material-ui/icons/Person';
 import GroupIcon from '@material-ui/icons/Group';
 import { RoomPopulated, RoomUserPopulated } from '../../types';
+import AddUser from '../AddUser';
 
 export interface RoomDetailsProps {
 	roomDetails: RoomPopulated;
 	onRoomLeave: (code: string) => void;
+	onAddUser: (newUsers: RoomPopulated) => void;
 }
 
-function RoomDetails({ roomDetails, onRoomLeave }: RoomDetailsProps) {
+function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) {
+	const [ openModal, setOpenModal ] = useState(false);
 	const { code, description, users } = roomDetails;
 	const [ isOpen, setIsOpen ] = useState(false);
 	const [ content, setContent ] = useState('');
@@ -24,14 +26,20 @@ function RoomDetails({ roomDetails, onRoomLeave }: RoomDetailsProps) {
 	const { userDetails } = useUser();
 
 	const openDialog = (type: string) => {
-		setIsOpen(true);
 		setType(type);
-		if (type === 'Leave') {
-			setContent(
-				'You will not be able to receive messeges sent in this room anymore. Other users in the room will also be notified when you leave.'
-			);
-		} else {
-			setContent('You will not be able to revert this deletion.');
+		switch(type) {
+			case 'Leave':
+				setIsOpen(true);
+				setContent(
+					'You will not be able to receive messeges sent in this room anymore. Other users in the room will also be notified when you leave.'
+				);
+				break;
+			case 'AddUser':
+				setOpenModal(true);
+				break;
+			default:
+				setIsOpen(true);
+				setContent('You will not be able to revert this deletion.');
 		}
 	};
 
@@ -46,16 +54,17 @@ function RoomDetails({ roomDetails, onRoomLeave }: RoomDetailsProps) {
 					await chatHttp.deleteRoom({ roomCode: code });
 				}
 			}
-		} catch (e) {
+		} catch (e: any) {
 			console.log(e.response.data);
 		}
 	};
 
 	const generateOptions = () => {
 		const ROOM_OPTIONS = [
-			{ label: 'Change Group Photo', icon: <PhotoIcon />, adminOnly: false },
-			{ label: 'Leave Group', icon: <MeetingRoomIcon />, adminOnly: false, action: () => openDialog('Leave') },
-			{ label: 'Delete Group', icon: <DeleteIcon />, adminOnly: true, action: () => openDialog('Delete') }
+			// { label: 'Change Group Photo', icon: <PhotoIcon />, adminOnly: false },
+			{ label: 'Add User', icon: <AddIcon />, adminOnly: false, action: () => openDialog('AddUser')  },
+			{ label: 'Leave Room', icon: <MeetingRoomIcon />, adminOnly: false, action: () => openDialog('Leave') },
+			// { label: 'Delete Group', icon: <DeleteIcon />, adminOnly: true, action: () => openDialog('Delete') }
 		];
 		return ROOM_OPTIONS.map(({ label, icon, adminOnly, action }, i) => {
 			return (
@@ -83,6 +92,13 @@ function RoomDetails({ roomDetails, onRoomLeave }: RoomDetailsProps) {
 		});
 	};
 
+	const handleAddUserClose = (room: RoomPopulated | null) => {
+		if (room) {
+			onAddUser(room);
+		}
+		setOpenModal(false);
+	};
+
 	return (
 		<div className="room__details">
 			<Avatar className="avatar--large">
@@ -94,6 +110,7 @@ function RoomDetails({ roomDetails, onRoomLeave }: RoomDetailsProps) {
 			<List>{generateUserList()}</List>
 
 			<ConfirmationDialog open={isOpen} onClose={handleModalClose} content={content} />
+			<AddUser open={openModal} roomCode={code} onClose={handleAddUserClose} />
 		</div>
 	);
 }
