@@ -10,14 +10,12 @@ RUN npm run build
 # Stage 2: Serve the app using Nginx
 FROM nginx:alpine
 
-# Copy the built assets from the build stage to the default nginx html directory
-COPY --from=build /app/build /usr/share/nginx/html
+WORKDIR /usr/share/nginx/html
+RUN rm -rf ./*
+COPY --from=build /app/build .
 
-# Remove the default nginx configuration file
-RUN rm /etc/nginx/conf.d/default.conf
-
-# Copy the custom nginx config file
-COPY nginx.conf /etc/nginx/nginx.conf
+RUN rm -rf /etc/nginx/conf.d/*
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
