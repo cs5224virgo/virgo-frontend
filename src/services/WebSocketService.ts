@@ -56,7 +56,7 @@ export class WebSocketService {
             switchMap(({ wsToken }) => {
                 // Creating the WebSocket connection with the token
                 const protocol = window.location.protocol === "https:" ? "wss://" : "ws://"
-                const url = process.env.REACT_APP_WEBSOCKET_SERVER_URL ? `${process.env.REACT_APP_WEBSOCKET_SERVER_URL}?token=${wsToken}` : `${protocol}${window.location.host}/api/v1/ws?token=${wsToken}`;
+                const url = process.env.REACT_APP_WEBSOCKET_SERVER_URL ? `${process.env.REACT_APP_WEBSOCKET_SERVER_URL}?token=${wsToken}` : `${protocol}${window.location.host}/ws/ws?token=${wsToken}`;
                 this.wsSubject = webSocket(url);
                 return this.wsSubject;
             }),
