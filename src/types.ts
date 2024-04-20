@@ -62,6 +62,9 @@ export interface AddUserData {
 	username: string;
 	roomCode: string;
 }
+export interface SummarizeData {
+	roomCode: string;
+}
 
 export interface BaseResponse {
 	success: boolean;
@@ -89,6 +92,11 @@ export interface RoomResp extends BaseResponse {
 export interface RoomsResp extends BaseResponse {
 	data: {
 		rooms: RoomPopulated[];
+	};
+}
+export interface SummaryResp extends BaseResponse {
+	data: {
+		summary: string;
 	};
 }
 export interface RoomEventResp {

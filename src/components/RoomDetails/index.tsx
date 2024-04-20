@@ -33,8 +33,18 @@ function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) 
     const [translatedContent, setTranslatedContent] = useState('');
 
 
-    const getSummarisedContent = () =>{
-        return "This is a summary of the chat"
+    const getSummarisedContent = async (roomCode: string) =>{
+        // return "This is a summary of the chat"
+		try {
+			let { data } = await chatHttp.getSummary({ roomCode });
+			if (data) {
+				setSummarisedContent(data.summary);
+			}
+		} catch (e: any) {
+			console.log(e.data);
+			if (e?.data?.message) setSummarisedContent("An error happened, please try again later." + e.data.message);
+			else setSummarisedContent("An error happened, please try again later.");
+		}
     }
 
     const getTranslatedContent = () =>{ 
@@ -54,10 +64,9 @@ function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) 
 				setOpenModal(true);
 				break;
             case 'Summarise':
-                let summary = getSummarisedContent();
-                // TODO: call API to get content then pass content
-                setSummarisedContent(summary);
-                setIsSummarise(true);
+				setSummarisedContent("Loading summary, please wait ...");
+				setIsSummarise(true);
+                getSummarisedContent(code);
                 break;
             case 'Translate':
                 // TODO: call API to get translation

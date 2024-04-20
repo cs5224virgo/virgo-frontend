@@ -14,6 +14,8 @@ import {
 	MessagesResp,
 	WsTokenResp,
 	AddUserData,
+	SummarizeData,
+	SummaryResp,
 } from './../types';
 import axios from './Axios';
 
@@ -149,6 +151,17 @@ const getMessages = async (data: RoomData) => {
 	});
 };
 
+const getSummary = async (data: SummarizeData) => {
+	return new Promise<SummaryResp>(async (resolve, reject) => {
+		try {
+			const response = await axios.post('/summary', data);
+			resolve(response.data);
+		} catch (error) {
+			reject(error);
+		}
+	});
+};
+
 const chatHttp = {
 	checkAvailability,
 	changeLoginStatus,
@@ -161,7 +174,8 @@ const chatHttp = {
 	leaveRoom,
 	getRooms,
 	getMessages,
-	deleteRoom
+	deleteRoom,
+	getSummary,
 };
 
 export default chatHttp;
