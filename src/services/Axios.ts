@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-	baseURL: process.env.REACT_APP_SERVER_URL ? `${process.env.REACT_APP_SERVER_URL}/v1` : `${window.location.origin}:30001/v1`
+	baseURL: process.env.REACT_APP_SERVER_URL ? `${process.env.REACT_APP_SERVER_URL}/v1` : `${window.location.origin}/api/v1`
 });
 
 instance.interceptors.request.use((req) => {
