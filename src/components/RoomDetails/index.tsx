@@ -4,11 +4,12 @@ import { Avatar, List, ListItem, ListItemAvatar, ListItemIcon, ListItemText } fr
 import ConfirmationDialog from '../ConfirmationDialog';
 import chatHttp from '../../services/Http';
 import { useUser } from '../../context/UserContext';
-import SummaryDialog from '../SummaryDialog';
+import OkDialog from '../OkDialog';
 import AddIcon from '@material-ui/icons/Add';
 import MeetingRoomIcon from '@material-ui/icons/MeetingRoom';
 import PersonIcon from '@material-ui/icons/Person';
 import SubjectIcon from '@material-ui/icons/Subject';
+import TranslateIcon from '@material-ui/icons/Translate';
 import GroupIcon from '@material-ui/icons/Group';
 import { RoomPopulated, RoomUserPopulated } from '../../types';
 import AddUser from '../AddUser';
@@ -28,6 +29,17 @@ function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) 
     const [ summarisedContent, setSummarisedContent ] = useState('');
 	const [ type, setType ] = useState('Leave');
 	const { userDetails } = useUser();
+    const [ isTranslate, setIsTranslate ] = useState(false);
+    const [translatedContent, setTranslatedContent] = useState('');
+
+
+    const getSummarisedContent = () =>{
+        return "This is a summary of the chat"
+    }
+
+    const getTranslatedContent = () =>{ 
+        return "This is a translation of the chat"
+    }
 
 	const openDialog = (type: string) => {
 		setType(type);
@@ -42,9 +54,16 @@ function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) 
 				setOpenModal(true);
 				break;
             case 'Summarise':
-                // TODO: call API to get  content then pass content
-                setSummarisedContent('This is a summary of the chat');
+                let summary = getSummarisedContent();
+                // TODO: call API to get content then pass content
+                setSummarisedContent(summary);
                 setIsSummarise(true);
+                break;
+            case 'Translate':
+                // TODO: call API to get translation
+                let translation = getTranslatedContent();
+                setTranslatedContent(translation);
+                setIsTranslate(true);
                 break;
                 
 			default:
@@ -74,7 +93,8 @@ function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) 
 			// { label: 'Change Group Photo', icon: <PhotoIcon />, adminOnly: false },
 			{ label: 'Add User', icon: <AddIcon />, adminOnly: false, action: () => openDialog('AddUser')  },
 			{ label: 'Leave Room', icon: <MeetingRoomIcon />, adminOnly: false, action: () => openDialog('Leave') },
-            { label: 'Summarise', icon: <SubjectIcon/>, adminOnly: false, action:()=> openDialog('Summarise')}
+            { label: 'Summarise', icon: <SubjectIcon/>, adminOnly: false, action:()=> openDialog('Summarise')},
+            { label: 'Translate', icon: <TranslateIcon />, adminOnly: false, action: () => openDialog('Translate')}
 			// { label: 'Delete Group', icon: <DeleteIcon />, adminOnly: true, action: () => openDialog('Delete') }
 		];
 		return ROOM_OPTIONS.map(({ label, icon, adminOnly, action }, i) => {
@@ -114,6 +134,10 @@ function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) 
         setIsSummarise(false);
     }
 
+    const handleCloseTranslation = () => {
+        setIsTranslate(false);
+    }
+
 	return (
 		<div className="room__details">
 			<Avatar className="avatar--large">
@@ -126,7 +150,8 @@ function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) 
 
 			<ConfirmationDialog open={isOpen} onClose={handleModalClose} content={content} />
 			<AddUser open={openModal} roomCode={code} onClose={handleAddUserClose} />
-            <SummaryDialog open={isSummarise} content={summarisedContent} onClose={handleCloseSummary} />
+            <OkDialog title={"Chat Summary"} open={isSummarise} content={summarisedContent} onClose={handleCloseSummary} />
+            <OkDialog title={"Translated Chat"} open={isTranslate} content={translatedContent} onClose={handleCloseTranslation} />
 		</div>
 	);
 }
