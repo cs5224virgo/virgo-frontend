@@ -4,9 +4,11 @@ import { Avatar, List, ListItem, ListItemAvatar, ListItemIcon, ListItemText } fr
 import ConfirmationDialog from '../ConfirmationDialog';
 import chatHttp from '../../services/Http';
 import { useUser } from '../../context/UserContext';
+import SummaryDialog from '../SummaryDialog';
 import AddIcon from '@material-ui/icons/Add';
 import MeetingRoomIcon from '@material-ui/icons/MeetingRoom';
 import PersonIcon from '@material-ui/icons/Person';
+import SubjectIcon from '@material-ui/icons/Subject';
 import GroupIcon from '@material-ui/icons/Group';
 import { RoomPopulated, RoomUserPopulated } from '../../types';
 import AddUser from '../AddUser';
@@ -19,9 +21,11 @@ export interface RoomDetailsProps {
 
 function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) {
 	const [ openModal, setOpenModal ] = useState(false);
+    const [ isSummarise, setIsSummarise ] = useState(false);
 	const { code, description, users } = roomDetails;
 	const [ isOpen, setIsOpen ] = useState(false);
 	const [ content, setContent ] = useState('');
+    const [ summarisedContent, setSummarisedContent ] = useState('');
 	const [ type, setType ] = useState('Leave');
 	const { userDetails } = useUser();
 
@@ -37,6 +41,12 @@ function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) 
 			case 'AddUser':
 				setOpenModal(true);
 				break;
+            case 'Summarise':
+                // TODO: call API to get  content then pass content
+                setSummarisedContent('This is a summary of the chat');
+                setIsSummarise(true);
+                break;
+                
 			default:
 				setIsOpen(true);
 				setContent('You will not be able to revert this deletion.');
@@ -64,6 +74,7 @@ function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) 
 			// { label: 'Change Group Photo', icon: <PhotoIcon />, adminOnly: false },
 			{ label: 'Add User', icon: <AddIcon />, adminOnly: false, action: () => openDialog('AddUser')  },
 			{ label: 'Leave Room', icon: <MeetingRoomIcon />, adminOnly: false, action: () => openDialog('Leave') },
+            { label: 'Summarise', icon: <SubjectIcon/>, adminOnly: false, action:()=> openDialog('Summarise')}
 			// { label: 'Delete Group', icon: <DeleteIcon />, adminOnly: true, action: () => openDialog('Delete') }
 		];
 		return ROOM_OPTIONS.map(({ label, icon, adminOnly, action }, i) => {
@@ -99,6 +110,10 @@ function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) 
 		setOpenModal(false);
 	};
 
+    const handleCloseSummary = () =>{
+        setIsSummarise(false);
+    }
+
 	return (
 		<div className="room__details">
 			<Avatar className="avatar--large">
@@ -111,6 +126,7 @@ function RoomDetails({ roomDetails, onRoomLeave, onAddUser }: RoomDetailsProps) 
 
 			<ConfirmationDialog open={isOpen} onClose={handleModalClose} content={content} />
 			<AddUser open={openModal} roomCode={code} onClose={handleAddUserClose} />
+            <SummaryDialog open={isSummarise} content={summarisedContent} onClose={handleCloseSummary} />
 		</div>
 	);
 }
