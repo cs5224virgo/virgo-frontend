@@ -12,9 +12,11 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 ```
 - Then use nvm to install version 10: `nvm install 10`
 - Clone the project, cd into the directory
+- Run `nvm use 10`
 - Run `npm install`
-- Create .env file with one line: `REACT_APP_SERVER_URL=http://localhost:7000`
+- Create .env file by running: `cp .env.example .env`
 - Start the application `npm start`
+- Go to localhost:3000 to use the app!
 
 ## Backend
 
